@@ -1,46 +1,39 @@
-//使能I/O端口闹钟，初始化I/O端口为输入模式。首先，要使用I/O端口作为中断输入，所以要使能相应的I/O端口时钟，以及初始化相应的I/O端口为输入模式。首先，要使用I/O端口作为中断输入，所以要使能相应的I/O端口时钟，以及初始化相应的I/O端口为输入模式
-
-RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG,ENABLE);   //使能SYSCFG时钟，要配置GPIO与中断线的映射关系，首次需要使能SYSCFG时钟
-void SYSCFG_EXTILineConfig(unit8_t EXTI_PortSourceGPIOx,unit8_EXTI_PinSourcex);   //在库函数中，配置GPIO与中断线的映射关系是通过函数SYSCFG_EXTILineConfig()来实现的
-SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA,EXTI_PinSource0);   //将中断线0与GPIOA映射起来，GPIOA.0与EXTI1中断线连接起来
-
-void EXTI_Init(EXTI_InitTypeDef*EXTI_InitStruct);   //在程序中设置该中断线上的中断初始化参数，如设置触发条件。中断线上的中断初始化是通过函数EXTI_Init()来实现的
-EXTI_InitTypeDef EXTI_InitStructure;
-EXTI_InitStructure.EXTI_Line=EXTI_Line4;
-EXTI_InitStructure.EXTI_Mode=EXTI_Mode_Interrupt;
-EXTI_InitStructure.EXTI_Trigger=EXTI_Trigger_Falling;
-EXTI_InitStructure.EXTI_LineCmd=ENABLE;
-EXTI_Init(&EXTI_InitStructure);   //初始化外设EXTI寄存器
-//以上的例子设置中断线4上的中断为下降沿触发
-
-//结构体EXTI_InitTypeDef的成员变量（即参数）的定义如下
+//以TIM3定时器为例
+RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);   //使能TIM3定时器，TIM3定时器挂载在APB1总线下，所以通过APB1总线下的时钟函数可使能TIM3定时器
+void TIM_TimeBaseInit(TIM_TypeDef*TIMx,TIM_TimeBaseInitTypeDef* TIM_TimeBaseInitStruct);   //设置自动重装值、分频系数、计数方式等，定时器参数的初始化是通过初始化函数TIM_TimeBaseInit实现的，第一个参数确定为哪个定时器；第二个参数是定时器初始化参数结构体指针
+//结构体类型为TIM_TimeBaseInitTypeDef;结构体的定义如下
 typedef struct
 {
-    unit32_t EXTI_Line;   //中断线的标号，对于外部中断，取值范围为EXTI_Line0~EXTI_Line15.线上的中断参数
-	EXTIMode_TypeDef EXTI_Mode;   //中断模式，可选值为EXTI_Mode_Interrupt和EXTI_Mode_Event
-	EXTITrigger_TypeDef EXTI_Trigger;   //触发方式，可以是下降沿触发(EXTI_Trigger_Falling)、上升沿触发(EXTI_Trigger_Rising)或者任意电平(上升沿和下降沿)触发(EXTI_Trigger_Rising_Falling)
-	FunctionalState EXTI_LinCmd;   //中断线使能
-	}EXTI_InitTypeDef;
+   unit16_t TIM_Prescaler;   //设置分频系数
+   unit16_t TIM_CounterMode;   //设置计数方式，可以设置为向上计数、向下计数方式和中心对齐计数模式，比较常用的是向上计数模式(TIM_CounterMode_Up)和向下计数模式(TIM_CounterMode_Down)
+   unit16_t TIM_Period;   //设置自动重载计数周期值
+   unit16_t TIM_ClockDivision;   //设置时钟分频因子
+   unit8_t TIM_RepetitionCounter;   //此成员变量是高级控制器才会用到的
+}TIM_TimeBaseInitTypeDef;
 
-//既然是外部中断，就必须配置NVIC中断优先级
-NVIC_InitTypeDef NVIC_InitStructure;
-NVIC_InitStructure.NVIC_IRQChannel=EXTI2_IRQn;   //使能按键外部中断通道
-NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02;   //抢占优先级2
-NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x02;   //响应优先级2
-NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;   //使能外部中断通道
-NVIC_Init(&NVIC_InitStructure);   //中断优先级分组初始化
+void TIM_ITConfig(TIM_TypeDef*TIMx,unit16_t TIM_IT,FouctionalState NewState);   //设置TIM3_DIER使能更新中断,第一个参数用于选择定时器，取值为TIM1~TIM17;第二个参数用来指明使能的定时器中断的类型，定时器中断的类型包括:更新中断(TIM_IT_Update)、触发中断(TIM_IT_Trigger),以及输入捕获中断等；第三个参数表示禁止还是使能更新中断
 
-//配置完中断服务函数后，接下来就是要编写中断服务函数
-ITStatus EXTI_GetITStatus(uint32_t EXTI_Line);   //此函数用于判断某个中断线上的中断是否发生(标志位是否置位)，一般应用于中断服务函数的开头
-void EXTI_ClearITPendingBit(uint32_t EXTI_Line);   //此函数用于清除某条中断线的中断标志位，一般应用于中断服务函数结束之前	
+void TIM_Cmd(TIM_TypeDef*TIMx,FouctionalState NewState);   //使能TIM3定时器
 
-//常用的中断服务函数格式
-void EXTI3_IRQHandleer(void)
-{
-   if(EXTI_GetITStatus(EXTI_Line3)!=RESET)   //判断某条中断线上是否发生了中断
-   {...中断逻辑...
-   EXTI_ClearITPendingBit(EXTI_Line3);   //清除中断线上的中断标志位
-   }
-}
-	
+ITStatus TIM_GetITStatus(TIM_TypeDef*TIMx,unit16_t);   //编写中断服务函数，中断服务函数用来处理定时器产生的中断，在中断产生后，通过状态寄存器的值来判断产生的中断属于什么类型，然后执行相关的操作，这里使用的是更新（溢出）中断（在状态寄存器中TIMx_SR的最低位），在处理完中断之后应该向TIMx_SR的最低位写0来清除该中断标志
 
+void TIM_ClearITPendingBit(TIM_TypeDef*TIMx,unit16_t TIM_IT);   //清除中断标志位
+
+//TIM3定时器初始化示例如下
+TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+TIM_TimeBaseStructure.TIM_Period=5000;
+TIM_TimeBaseStructure.TIM_Prescaler=7199;
+TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIVI;
+TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
+TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);
+
+//要使能TIM3定时器
+TIM_Cmd(TIM3,ENABLE);   //使能TIM3外设
+
+//程序中判断TIM3定时器是否发生更新（溢出）中断
+if(TIM_GetITStatus(TIM3,TIM_IT_Update)!=RESET)
+{ }
+
+//在TIM3定时器的更新中断发生后要清除中断标志位
+TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
+   
