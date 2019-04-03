@@ -1,40 +1,46 @@
-void GPIO_Init(GPIO_TypeDef*GPIOx,GPIO_InitTypeDef*GPIO_InitStruct;//GPIO的初始化函数,函数有两个参数，第一个参数用来指定需要初始化的GPIO组，取值范围为GPIOA~GPIOK;第二个参数为初始化参数结构体指针，结构类型为GPIO_InitTypeDef,其结构体的定义为：
-typedefstruct
+//使能I/O端口闹钟，初始化I/O端口为输入模式。首先，要使用I/O端口作为中断输入，所以要使能相应的I/O端口时钟，以及初始化相应的I/O端口为输入模式。首先，要使用I/O端口作为中断输入，所以要使能相应的I/O端口时钟，以及初始化相应的I/O端口为输入模式
+
+RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG,ENABLE);   //使能SYSCFG时钟，要配置GPIO与中断线的映射关系，首次需要使能SYSCFG时钟
+void SYSCFG_EXTILineConfig(unit8_t EXTI_PortSourceGPIOx,unit8_EXTI_PinSourcex);   //在库函数中，配置GPIO与中断线的映射关系是通过函数SYSCFG_EXTILineConfig()来实现的
+SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA,EXTI_PinSource0);   //将中断线0与GPIOA映射起来，GPIOA.0与EXTI1中断线连接起来
+
+void EXTI_Init(EXTI_InitTypeDef*EXTI_InitStruct);   //在程序中设置该中断线上的中断初始化参数，如设置触发条件。中断线上的中断初始化是通过函数EXTI_Init()来实现的
+EXTI_InitTypeDef EXTI_InitStructure;
+EXTI_InitStructure.EXTI_Line=EXTI_Line4;
+EXTI_InitStructure.EXTI_Mode=EXTI_Mode_Interrupt;
+EXTI_InitStructure.EXTI_Trigger=EXTI_Trigger_Falling;
+EXTI_InitStructure.EXTI_LineCmd=ENABLE;
+EXTI_Init(&EXTI_InitStructure);   //初始化外设EXTI寄存器
+//以上的例子设置中断线4上的中断为下降沿触发
+
+//结构体EXTI_InitTypeDef的成员变量（即参数）的定义如下
+typedef struct
 {
-    uint32_t GPIO_Pin;
-	GPIOMode_TypeDef GPIO_Mode;
-	GPIOSpeed_TypeDef GPIO_Speed;
-	GPIOOType_TypeDef GPIO_OType;
-	GPIOPuPd_TypeDef GPIO_PuPd;
-}GPIO_InitTypeDef;
-初始化GPIO的常用格式是：
-GPIO_InitTypeDef GPIO_InitStructure;
-GPIO_InitStructure.GPIO_Pin=GPIO_Pin_9;  //GPIOF9
-GPIO_InitStructure.GPIO_Mode=GPIO_Mode_OUT;   //普通输出模式
-GPIO_InitStructure.GPIO_Speed=GPIO_Speed_100 MHz;   //100MHz
-GPIO_InitStructure.GPIO_OType=GPIO_OType_PP;   //推挽模式
-GPIO_InitStructure.GPIO_PuPb=GPIO_PuPb_UP;   //上拉模式
-GPIO_Init(GPIOF,&GPIO_InitStructure);   //初始化GPIO
-上面代码的意思是设置GPIO的第九个端口为推挽输出模式，同时速度为100MHz,上拉模式
-GPIO_InitStructure的第一个成员变量GPIO_Pin用来设置要初始化的是哪个或者哪些I/O端口；第二个成员变量GPIO_Mode用来设置对应I/O端口的输入/输出模式
+    unit32_t EXTI_Line;   //中断线的标号，对于外部中断，取值范围为EXTI_Line0~EXTI_Line15.线上的中断参数
+	EXTIMode_TypeDef EXTI_Mode;   //中断模式，可选值为EXTI_Mode_Interrupt和EXTI_Mode_Event
+	EXTITrigger_TypeDef EXTI_Trigger;   //触发方式，可以是下降沿触发(EXTI_Trigger_Falling)、上升沿触发(EXTI_Trigger_Rising)或者任意电平(上升沿和下降沿)触发(EXTI_Trigger_Rising_Falling)
+	FunctionalState EXTI_LinCmd;   //中断线使能
+	}EXTI_InitTypeDef;
 
-GPIOx_IDR:输入数据寄存器（该寄存器用于读取GPIOx的输入）
-unit8_t GPIO_ReadInputDataBit(GPIO_TypeDef* GPIOx,unit16_t GPIO_Pin);
-unit16_t GPIO_ReadInputData(GPIO_TypeDef* GPIOx);
-//第一个函数是用来读取一组GPIO的一个或者几个I/O端口输入电平，第二个函数用来一次读取一组GPIO所有I/O端口的输入电平
-GPIO_ReadInputDataBit(GPIOF,GPIO_PIN_5);//读取GPIOF.5的输入电平
+//既然是外部中断，就必须配置NVIC中断优先级
+NVIC_InitTypeDef NVIC_InitStructure;
+NVIC_InitStructure.NVIC_IRQChannel=EXTI2_IRQn;   //使能按键外部中断通道
+NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=0x02;   //抢占优先级2
+NVIC_InitStructure.NVIC_IRQChannelSubPriority=0x02;   //响应优先级2
+NVIC_InitStructure.NVIC_IRQChannelCmd=ENABLE;   //使能外部中断通道
+NVIC_Init(&NVIC_InitStructure);   //中断优先级分组初始化
 
-GPIOx_ODR:输出数据寄存器（该寄存器是GPIO输入/输出电平控制相关的寄存器，用于控制GPIOx的输出）
-voidGPIO_Write(GPIO_TypeDef*GPIOx,unit16_t PortVal);//该函数一般用来一次性地往一个GPIO写入多个端口设值
-GPIO_Write(GPIOA_0x0000);//往GPIO的A组端口输入设值
-//同时读GPIOx_ODR还可以读出I/O端口的输出状态
-unit16_tGPIO_ReadOutputData(GPIO_TypeDef*GPIOx);
-unit8_t GPIO_ReadOutputDataBit(GPIO_TypeDef*GPIOx,unit16_t GPIO_Pin);
+//配置完中断服务函数后，接下来就是要编写中断服务函数
+ITStatus EXTI_GetITStatus(uint32_t EXTI_Line);   //此函数用于判断某个中断线上的中断是否发生(标志位是否置位)，一般应用于中断服务函数的开头
+void EXTI_ClearITPendingBit(uint32_t EXTI_Line);   //此函数用于清除某条中断线的中断标志位，一般应用于中断服务函数结束之前	
 
-GPIOx_BSRR:置位/复位寄存器（该寄存器用来置位或者复位I/O端口）
-//对于GPIOx_BSRR,不需要先读，可以直接设置
-GPIOA-->BSRR=1<<1;   //设置GPIOA.1为高电平
-GPIOA-->BSRR=1<<(16+1);   //设置GPIOA.1为低电平
-void GPIO_SetBits(GPIO_TypeDef*GPIOx,unit16_t GPIO_Pin);
-void GPIO_ResetBits(GPIO_TypeDef*GPIOx,unit16_t GPIO_Pin);
-//通过库函数操作GPIOx_BSRR来设置I/O端口电平的函数
+//常用的中断服务函数格式
+void EXTI3_IRQHandleer(void)
+{
+   if(EXTI_GetITStatus(EXTI_Line3)!=RESET)   //判断某条中断线上是否发生了中断
+   {...中断逻辑...
+   EXTI_ClearITPendingBit(EXTI_Line3);   //清除中断线上的中断标志位
+   }
+}
+	
+
