@@ -1,39 +1,21 @@
-//以TIM3定时器为例
-RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3,ENABLE);   //使能TIM3定时器，TIM3定时器挂载在APB1总线下，所以通过APB1总线下的时钟函数可使能TIM3定时器
-void TIM_TimeBaseInit(TIM_TypeDef*TIMx,TIM_TimeBaseInitTypeDef* TIM_TimeBaseInitStruct);   //设置自动重装值、分频系数、计数方式等，定时器参数的初始化是通过初始化函数TIM_TimeBaseInit实现的，第一个参数确定为哪个定时器；第二个参数是定时器初始化参数结构体指针
-//结构体类型为TIM_TimeBaseInitTypeDef;结构体的定义如下
+//USART初始化结构体
 typedef struct
 {
-   unit16_t TIM_Prescaler;   //设置分频系数
-   unit16_t TIM_CounterMode;   //设置计数方式，可以设置为向上计数、向下计数方式和中心对齐计数模式，比较常用的是向上计数模式(TIM_CounterMode_Up)和向下计数模式(TIM_CounterMode_Down)
-   unit16_t TIM_Period;   //设置自动重载计数周期值
-   unit16_t TIM_ClockDivision;   //设置时钟分频因子
-   unit8_t TIM_RepetitionCounter;   //此成员变量是高级控制器才会用到的
-}TIM_TimeBaseInitTypeDef;
+   uint32_t USART_BaudRate;   //用于设置波特率，一般设置为2400、9600、19200、115200，标准库函数会根据设定值计算得到USARTDIV值，并设置USART_BRR
+   uint16_t USART_WordLength;   //用于设置数据帧字长，一般设置为8位或9位，它设定USART_CR1的M位的值，若没有使能奇偶校检控制，一般使用8数据位，若使能奇偶校检，一般使用9数据位
+   uint16_t USART_StopBits;   //用于设置停止位，可选0.5位、1位、1.5位和2位停止位，它设定USART_CR2的STOP[1:0]位的值，一般选择1位停止位
+   uint16_t USART_Parity;   //用于设置奇偶校检控制，可选USART_Parity_No(无校检)、USARTA_Parity_Even(奇校检)、USART_Parity_Odd(偶校检),它是设定USART_CR1的PCE位和PS位的值
+   uint16_t USART_Mode;   //用于设置USART的工作模式，有USART_Mode_Rx和USART_Mode_Tx，允许使用逻辑或运算选择两个，它设定USART_CR1的RE位和TE位
+   uint16_t USART_HardwareFlowControl;   //用于设置硬件流控制，只有在硬件流控制下有效，可选使能RTS、使能CTS、同时使能RTS和CTS、不使能硬件流
+}USART_InitTypeDef;
 
-void TIM_ITConfig(TIM_TypeDef*TIMx,unit16_t TIM_IT,FouctionalState NewState);   //设置TIM3_DIER使能更新中断,第一个参数用于选择定时器，取值为TIM1~TIM17;第二个参数用来指明使能的定时器中断的类型，定时器中断的类型包括:更新中断(TIM_IT_Update)、触发中断(TIM_IT_Trigger),以及输入捕获中断等；第三个参数表示禁止还是使能更新中断
-
-void TIM_Cmd(TIM_TypeDef*TIMx,FouctionalState NewState);   //使能TIM3定时器
-
-ITStatus TIM_GetITStatus(TIM_TypeDef*TIMx,unit16_t);   //编写中断服务函数，中断服务函数用来处理定时器产生的中断，在中断产生后，通过状态寄存器的值来判断产生的中断属于什么类型，然后执行相关的操作，这里使用的是更新（溢出）中断（在状态寄存器中TIMx_SR的最低位），在处理完中断之后应该向TIMx_SR的最低位写0来清除该中断标志
-
-void TIM_ClearITPendingBit(TIM_TypeDef*TIMx,unit16_t TIM_IT);   //清除中断标志位
-
-//TIM3定时器初始化示例如下
-TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
-TIM_TimeBaseStructure.TIM_Period=5000;
-TIM_TimeBaseStructure.TIM_Prescaler=7199;
-TIM_TimeBaseStructure.TIM_ClockDivision=TIM_CKD_DIVI;
-TIM_TimeBaseStructure.TIM_CounterMode=TIM_CounterMode_Up;
-TIM_TimeBaseInit(TIM3,&TIM_TimeBaseStructure);
-
-//要使能TIM3定时器
-TIM_Cmd(TIM3,ENABLE);   //使能TIM3外设
-
-//程序中判断TIM3定时器是否发生更新（溢出）中断
-if(TIM_GetITStatus(TIM3,TIM_IT_Update)!=RESET)
-{ }
-
-//在TIM3定时器的更新中断发生后要清除中断标志位
-TIM_ClearITPendingBit(TIM3,TIM_IT_Update);
+//当使用同步模式时需要配置SCLK引脚输出脉冲的属性，标准库是通过一个时钟初始化结构体USART_ClockInitTypeDef来设置的，因此该结构体内容也只有在同步模式才需要设置
+typdef struct
+{
+   uint16_t USART_Clock;   //用于同步模式下SCLK引脚上时钟输出使能控制，可选禁止时钟输出(USART_Clock_Disable)或开启时钟输出(USART_Clock_Enable);若使用同步模式发送，一般都需要开启时钟，它设定USART_CR2的CLKEN位的值
+   uint16_t USART_CPOL;   //用于同步模式下SCLK引脚上的输出时钟极性设置，设置在空闲时SCLK引脚为低电平(USART_CPOL_Low)或高电平(USART_CPOL_High)，它设定USART_CR2的CPOL位的值
+   uint16_t USART_CPHA;   //用于同步模式下SCLK引脚上的输出时钟相位设置，可设置在时钟第一个变化沿捕获数据(USART_CPHA_1Edge)或在时钟第二个变化沿捕获数据，它设定USART_CR2的CPHA位的值，USART_CPHA和USART_CPOL配合使用可以获得多种模式时钟关系
+   uint16_t USART_LastBit;   //末位时钟脉冲，用于选择在发送最后一个数据位时时钟脉冲是否在SCLK引脚输出，可以是不输出脉冲(USART_LastBit_Disable)、输出脉冲(USART_LastBit_Enable),它设定USART_CR2的LBCL位的值
+}USART_ClockInitTypeDef
+   
    
