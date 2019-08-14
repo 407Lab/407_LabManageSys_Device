@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>STM32F407ZG</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.1.0.8</PackID>
+          <PackID>Keil.STM32F4xx_DFP.2.13.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000,0x20000) IRAM2(0x10000000,0x10000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F40_41xxx,USE_STDPERIPH_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\USER;..\FWLIB\inc;..\HARDWARE\LED;..\HARDWARE\LCD</IncludePath>
+              <IncludePath>..\CORE;..\SYSTEM\delay;..\SYSTEM\sys;..\SYSTEM\usart;..\USER;..\FWLIB\inc;..\FATFS\exfuns;..\FATFS\src;..\MALLOC;..\HARDWARE\LED;..\HARDWARE\LCD;..\HARDWARE\RC522;..\HARDWARE\SDIO;..\HARDWARE\DS1302;..\HARDWARE\BEEP;..\HARDWARE\HC05;..\HARDWARE\TIMER</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -400,6 +400,11 @@
           <GroupName>HARDWARE</GroupName>
           <Files>
             <File>
+              <FileName>beep.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\BEEP\beep.c</FilePath>
+            </File>
+            <File>
               <FileName>led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LED\led.c</FilePath>
@@ -408,6 +413,31 @@
               <FileName>lcd.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\LCD\lcd.c</FilePath>
+            </File>
+            <File>
+              <FileName>rc522.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\RC522\rc522.c</FilePath>
+            </File>
+            <File>
+              <FileName>sdio_sdcard.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\SDIO\sdio_sdcard.c</FilePath>
+            </File>
+            <File>
+              <FileName>ds1302.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\DS1302\ds1302.c</FilePath>
+            </File>
+            <File>
+              <FileName>hc05.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\HC05\hc05.c</FilePath>
+            </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWARE\TIMER\timer.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -493,6 +523,51 @@
               <FileName>stm32f4xx_syscfg.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FWLIB\src\stm32f4xx_syscfg.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWLIB\src\stm32f4xx_dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_sdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWLIB\src\stm32f4xx_sdio.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>FATFS</GroupName>
+          <Files>
+            <File>
+              <FileName>diskio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FATFS\src\diskio.c</FilePath>
+            </File>
+            <File>
+              <FileName>ff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FATFS\src\ff.c</FilePath>
+            </File>
+            <File>
+              <FileName>exfuns.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FATFS\exfuns\exfuns.c</FilePath>
+            </File>
+            <File>
+              <FileName>fattester.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FATFS\exfuns\fattester.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MALLOC</GroupName>
+          <Files>
+            <File>
+              <FileName>malloc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\MALLOC\malloc.c</FilePath>
             </File>
           </Files>
         </Group>

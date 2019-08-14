@@ -1,13 +1,13 @@
-#ifndef __LED_H
-#define __LED_H
+#ifndef _SPI_H_
+#define _SPI_H_
 #include "sys.h"
 
 /******************************************************************************
-* @ File name --> led.h
+* @ File name --> spi.h
 * @ Author    --> By@ 鲁亮
 * @ Version   --> V1.0
-* @ Date      --> 07 - 16 - 2019
-* @ Brief     --> led灯驱动头文件
+* @ Date      --> 07 - 17 - 2019
+* @ Brief     --> spi总线驱动头文件
 *
 * @ Copyright (C) 2019
 * @ All rights reserved	www.cqutlab.club
@@ -16,15 +16,30 @@
 *                                  File Update
 * @ Version   --> V1.0
 * @ Author    --> By@鲁亮
-* @ Date      --> 07 - 16 - 2019
+* @ Date      --> 07 - 17 - 2019
 * @ Revise    --> 新建文件
 *
 ******************************************************************************/
 
-//LED端口定义
-#define LED1	PEout(4)	// DS1
-#define LED2	PEout(5)	// DS2
-#define LED3	PEout(6)	// DS3
+#define SPIReadByte() SPIWriteByte(0) 
 
-void LED_Init(void);//初始化		 				    
+#define MYRC522_CS   PAout(4)
+#define MYRC522_RST  PAout(6)
+
+void delay_ns(u32 ns);
+u8 SPIWriteByte(u8 Byte);
+void SPI3_Init(void);
+
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
