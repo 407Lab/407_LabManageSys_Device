@@ -1,0 +1,6 @@
+添加了key.c
+主函数while循环
+readid函数里多加了一次寻卡
+添加了First函数（第一次寻卡）、Second函数（第二次寻卡）、Compare_ID函数（对比两次卡号是否相同）全部放在rc522.c的结尾
+
+
